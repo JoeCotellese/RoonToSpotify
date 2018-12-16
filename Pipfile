@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+spotipy = "*"
+openpyxl = "*"
+envparse = "*"
+
+[dev-packages]
+pylint = "*"
+pip = "==18.0"
+
+[requires]
+python_version = "3.7"
