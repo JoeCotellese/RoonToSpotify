@@ -2,6 +2,7 @@ from envparse import env
 import pprint
 import sys
 import urllib.parse
+import argparse
 from openpyxl import load_workbook
 import spotipy
 import spotipy.util as util
@@ -17,7 +18,7 @@ def find_spotify(artist, album_name):
 
     sp = spotipy.Spotify(auth=token)
     print ("searching for {}:{}".format(artist, album_name))
-    search = "artist:{0} album:{1}".format(artist, album_name)
+    search = "artist:{0} \"{1}]\"".format(artist, album_name).encode('utf-8')
     result = sp.search(q=search, type='album', limit=1)
     items = result['albums']['items']
     try:
@@ -25,16 +26,10 @@ def find_spotify(artist, album_name):
         sp.current_user_saved_albums_add(albums=[id,])
     except IndexError:
         print ("Error search for {} {}".format(artist, album_name))
-
-if __name__ == "__main__":
-    file = "test_file.xlsx"
-
+def populate_albums(file):
     wb = load_workbook(filename = file)
-
     sheet = wb.active
-
     max_row = sheet.max_row
-    max_column = sheet.max_column
     current_album = ""
     last_album = ""
     for i in range(2, max_row+1):
@@ -43,3 +38,16 @@ if __name__ == "__main__":
         if current_album != last_album:
             find_spotify(artist, current_album)
             last_album = current_album
+
+def populate_playlists(file):
+    pass
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Populate Spotify from your Roon Library.")
+    parser.add_argument('-a', '--album', dest='albums')
+    parser.add_argument('-p', '--playlist', dest='playlists' )
+    file = "test_file.xlsx"
+
+    args = parser.parse_args()
+    if args.albums:
+        populate_albums(args.albums)
