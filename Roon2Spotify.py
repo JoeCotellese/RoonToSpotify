@@ -3,6 +3,8 @@ import pprint
 import sys
 import urllib.parse
 import argparse
+import logging
+from functools import partial
 from openpyxl import load_workbook
 import spotipy
 import spotipy.util as util
@@ -11,7 +13,38 @@ env.read_envfile()
 pprint.pprint (env.str)
 my_client_id = env('SPOTIPY_CLIENT_ID')
 my_client_secret = env('SPOTIPY_CLIENT_SECRET')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+# Define retry util function
+# via Stack Overflow https://stackoverflow.com/questions/21786382/pythonic-way-of-retry-running-a-function
+# Define Exception class for retry
+class RetryException(Exception):
+    u_str = "Exception ({}) raised after {} tries."
 
+    def __init__(self, exp, max_retry):
+        self.exp = exp
+        self.max_retry = max_retry    
+    def __unicode__(self):
+        return self.u_str.format(self.exp, self.max_retry)
+    def __str__(self):
+        return self.__unicode__()
+        
+def retry_func(func, max_retry=10):
+    """
+    @param func: The function that needs to be retry
+    @param max_retry: Maximum retry of `func` function, default is `10`
+    @return: func
+    @raise: RetryException if retries exceeded than max_retry
+    """
+    for retry in range(1, max_retry + 1):
+        try:
+            return func()
+        except Exception as e:
+            logger.info('Failed to call {}, in retry({}/{})'.format(func.func,
+                                                           retry, max_retry))
+    else:
+        raise RetryException('Failed to call function after retrying.', max_retry)
+    
 def find_spotify(artist, album_name):
     token = util.prompt_for_user_token("JoeCotellese","playlist-modify-private,user-library-modify",
         client_id=my_client_id,client_secret=my_client_secret,redirect_uri='http://localhost')
@@ -19,13 +52,15 @@ def find_spotify(artist, album_name):
     sp = spotipy.Spotify(auth=token)
     print ("searching for {}:{}".format(artist, album_name))
     search = "artist:{0} \"{1}]\"".format(artist, album_name).encode('utf-8')
-    result = sp.search(q=search, type='album', limit=1)
+    result = retry_func(partial(sp.search, q=search, type='album', limit=1), max_retry=3)
     items = result['albums']['items']
     try:
         id = items[0]['id']
-        sp.current_user_saved_albums_add(albums=[id,])
+        retry_func(partial(sp.current_user_saved_albums_add, albums=[id,]), max_retry=3)
     except IndexError:
         print ("Error search for {} {}".format(artist, album_name))
+    except RetryException as e:
+        print (e.args)
 def populate_albums(file):
     wb = load_workbook(filename = file)
     sheet = wb.active
