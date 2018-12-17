@@ -6,35 +6,20 @@ I'm a huge fan of the application Roon. The one problem is that I can't stream m
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+This project uses `pipenv` to manage dependencies, and assumes Python 3.7
+You can can install `pipenv` with `pip`. You may want to set the `PIPENV_VENV_IN_PROJECT` environment variable on your development machine
+(see pipenv docs for details).
 
-Say what the step will be
+To bootstrap your python envinronment
+    pipenv install
 
-```
-Give the example
-```
+### Usage
+To see usage:
+    pipenv run python RoonToSpotify.py --help
 
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
+Note that the ALBUMS file expects an Excel XLSX file. Roon exports older Excel workbooks. Converting it requires Excel and is left as an exercise for the user.
 
 ## Built With
 
@@ -42,11 +27,7 @@ Add additional notes about how to deploy this on a live system
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+Pull requests are welcome
 
 ## Authors
 
